@@ -77,10 +77,23 @@ target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
+*.ipynb
 
 # IPython
 profile_default/
 ipython_config.py
+
+# job file
+*.sh
+
+# Data
+CAGI7/
+
+# Model ckpts
+trained_model/
+
+# Results
+eval_results/
 
 # pyenv
 #   For a library or package, you might want to ignore these files since the code is

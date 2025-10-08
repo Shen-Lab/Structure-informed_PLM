@@ -2518,6 +2518,7 @@ def mutation_embedding_umap(value_dict:Dict, model_name:str=None, save_embedding
   return
 
 @registry.register_metric('save_embedding')
+@registry.register_metric('save_logits')
 @registry.register_metric('embed_antibody')
 @registry.register_metric('embed_antibody_internal')
 def none_metric():

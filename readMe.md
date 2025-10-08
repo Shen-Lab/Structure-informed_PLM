@@ -86,6 +86,30 @@ For a sequence of length L, the final embeddings have size L * 768. After succes
 {seq_id : embedding_matrix} // seq_id is the given identifier for the sequence, embedding_matrix is a list with size L * 768.
 ```
 
+### script for embedding pipeline
+```python
+python gen_emb.py
+usage: gen_emb.py [-h] [--csv_dir CSV_DIR] [--data_dir DATA_DIR] [--model_dir MODEL_DIR]
+                  [--embed_name EMBED_NAME] [--batch_size BATCH_SIZE] [--overwrite]
+                  [--only_csv [ONLY_CSV ...]] [--index INDEX] [--total_len TOTAL_LEN]
+
+Generate per-CSV HDF5 embedding files from ProteinGym substitution CSVs.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --csv_dir CSV_DIR     Directory containing ProteinGym substitution CSVs.
+  --data_dir DATA_DIR   Directory used by the embedding script for LMDB/JSON (should be visible under
+                        ProteinEncoder-LM/).
+  --model_dir MODEL_DIR
+                        Path to the saved model folder.
+  --embed_name EMBED_NAME
+                        Identifier for --embed_modelNm (appears in output JSON filename).
+  --batch_size BATCH_SIZE
+                        Batch size for embedding.
+  --overwrite           Overwrite existing .h5 files if present.
+``` 
+
+
 ## Variant fitness
 0. Information
 * Log ratio of likelihood: $\textup{log}_{e} \frac{p(\textup{mut})}{p(\textup{wt})}$ is used as fitness prediction. More positive value means better than WT and more negative value means worse than WT.
@@ -134,6 +158,30 @@ python scripts/main.py \
 ```
 
 If run command successfully, a csv file named '{data_file_name}_{embed_modelNm}_predictions.csv' should appear under the folder '/path/to/dataset' which contains predicted fitness scores for each mutation. If groundtruth fitness scores are given, a json file named '{data_file_name}_{embed_modelNm}_metrics.json' will be generated which contains metric values.
+
+
+### script for logits generation pipelines
+```python
+python gen_logits.py --help
+usage: gen_logits.py [-h] [--fasta_dir FASTA_DIR] [--data_dir DATA_DIR] [--model_dir MODEL_DIR]
+                     [--embed_name EMBED_NAME] [--batch_size BATCH_SIZE] [--overwrite]
+
+Generate per-CSV HDF5 embedding files from ProteinGym substitution CSVs.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --fasta_dir FASTA_DIR
+                        Directory containing ProteinGym substitution CSVs.
+  --data_dir DATA_DIR   Directory used by the embedding script for LMDB/JSON (should be visible under
+                        ProteinEncoder-LM/).
+  --model_dir MODEL_DIR
+                        Path to the saved model folder.
+  --embed_name EMBED_NAME
+                        Identifier for --embed_modelNm (appears in output JSON filename).
+  --batch_size BATCH_SIZE
+                        Batch size for embedding.
+  --overwrite           Overwrite existing .h5 files if present.
+```
 
 
 ## Structure-informed finetuning

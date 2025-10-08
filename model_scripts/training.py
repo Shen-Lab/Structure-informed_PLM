@@ -657,6 +657,10 @@ def run_eval_epoch(eval_loader: DataLoader,
             input_masks_VL = batch['input_mask_VL'].cpu().numpy() #[bs,l_max]
         elif task in ['embed_seq', 'embed']:
             hiddenMats = np.transpose([hidden.cpu().numpy() for hidden in outputs[2]], (1,0,2,3)) # [bs,n_layer,L_max,hidden_d]
+            seqId_list = batch['seq_id'] # tuple, [bs,], for save embedding 
+            input_mask = batch['input_mask'].cpu().numpy() #[bs,l_max]
+            pred_token_logits = outputs[1].cpu().numpy() #[bs,l_max,n_token]
+            #print(pred_token_logits.shape)
         elif task == 'mutation_fitness_UNsupervise_mutagenesis':
             metric_tuple = outputs[0][1]
             predictions = outputs[1].cpu().numpy() # mlm: [bs,l_max,n_token]; fitness:[bs,] 
@@ -664,6 +668,14 @@ def run_eval_epoch(eval_loader: DataLoader,
             if metric_names[0] == 'mutation_embedding_umap':
                 lastHiddenMats = outputs[2][-1].cpu().numpy().astype(np.float32)# [bs,L_max,hidden_d]
                 AAHeadHiddenMats = outputs[4].cpu().numpy().astype(np.float32)
+            
+            
+            print("targets.shape", targets.shape)
+            
+            seqId_list = batch['set_nm'] # tuple, [bs,]
+            input_mask = batch['input_mask'].cpu().numpy() #[bs,l_max]
+            pred_token_logits = outputs[1].cpu().numpy() #[bs,l_max,n_token]
+            print(pred_token_logits.shape)
         elif task == 'multitask_fitness_UNsupervise_mutagenesis':
             metric_tuple = outputs[0][1]
             predictions = [pred_logits.cpu().numpy() for pred_logits in outputs[1]]
@@ -744,6 +756,10 @@ def run_eval_epoch(eval_loader: DataLoader,
         elif task in ['save_embedding']:
             seqId_list = batch['seq_id'] # tuple, [bs,], for save embedding 
             input_mask = batch['input_mask'].cpu().numpy() #[bs,l_max]
+        
+        
+        #print("!!!", "task", task)
+        #print("!!!", "metric_names", metric_names)
         
         ## save needed outputs 
         if output_pred:
@@ -915,7 +931,39 @@ def run_eval_epoch(eval_loader: DataLoader,
                     metric_values[name]['targets_aa'].append(targets_aa[bs_i])
                     metric_values[name]['targets_ss'].append(targets_ss[bs_i])
                     metric_values[name]['targets_rsa'].append(targets_rsa[bs_i])
+            elif name == 'save_logits':
+                """
+                pred_token_logits = outputs[1].cpu().numpy() #[bs,l_max,n_token]
+                seqId_list = batch['seq_id'] # tuple, [bs,], for save embedding 
+                input_mask = batch['input_mask'].cpu().numpy() #[bs,l_max]
+                """
+                import pickle
+                
+                out_dir = "./eval_results"
+                out_path = os.path.join(out_dir, f"zero_shot.pkl")
+                
+                all_dict = {}
+                if os.path.exists(out_path):
+                    try:
+                        all_dict = pickle.load(open(out_path,'rb'))
+                    except:
+                        print(f"[WARN] Could not load pickle; treating as empty.")
+                
+                with open(out_path, 'wb') as f:
+                    for bs_i in range(len(input_mask)):
+                        seq_id = seqId_list[bs_i]
+                        bs_mask = input_mask[bs_i].astype(bool)
+                        per_logits = pred_token_logits[bs_i,bs_mask,:][1:-1]
+                        
+                        all_dict[seq_id] = per_logits
+                    
+                    pickle.dump(all_dict, f)
+                
+                
+                        
+                
             elif name == 'save_embedding':
+                """
                 ## only keep embedding of positions with residues
                 for bs_i in range(len(input_mask)):
                     seq_id = seqId_list[bs_i]
@@ -923,6 +971,28 @@ def run_eval_epoch(eval_loader: DataLoader,
                     last_hidden = hiddenMats[bs_i,-1,bs_mask,:][1:-1]  # embedding of last layer(-1) [seq_l,hidden_d]
                     if seq_id not in metric_values[name].keys():
                         metric_values[name][seq_id] = last_hidden.tolist()
+                """
+                
+                import h5py
+                
+                out_dir = "./eval_results"
+                h5_path = os.path.join(out_dir, f"{split}.h5")
+                
+                with h5py.File(h5_path, "a") as h5f:
+                    for bs_i in range(len(input_mask)):
+                        seq_id = seqId_list[bs_i]
+                        bs_mask = input_mask[bs_i].astype(bool)
+                        last_hidden = hiddenMats[bs_i,-1,bs_mask,:][1:-1]  # embedding of last layer(-1) [seq_l,hidden_d]
+                        
+                        # (re)create group for this sequence and write immediately
+                        if seq_id not in h5f:
+                            g = h5f.create_group(seq_id)
+                            g.create_dataset("embedding", data=last_hidden, compression="gzip")
+
+                    
+                
+            
+                    
             elif name == 'mutation_embedding_umap':
                 for bs_i in range(len(targets)):
                     bs_mut_rel_idx = mut_relative_idxs[bs_i]
@@ -1116,21 +1186,30 @@ def run_eval_epoch(eval_loader: DataLoader,
             pretrain_model = re.split('/',from_pretrained)[-1]
             metric_fun = registry.get_metric('mutation_embedding_umap')
             metric_fun(value,model_name=pretrain_model,pretrained_epoch=pretrained_epoch,save_embeddings=True,draw_fig=False,eval_path=eval_save_dir,set_name=mutgsis_set)
+        
+        
+        #elif name == 'save_embedding':
+        #    pretrain_model = re.split('/',from_pretrained)[-1]
+        #    embedding_save_model_path = f'{eval_path}/embedding_analysis/embedding_save/{model_name}/{set_name}_{pretrained_epoch}'
+        #    if not os.path.isdir(embedding_save_model_path):
+        #        os.makedirs(embedding_save_model_path,exist_ok=True)
+        #    
+        #    if embed_modelNm is not None:
+        #        saveEmbed_dir = f'{data_dir}/embedding_{split}_{embed_modelNm}'
+        #    else:
+        #        if pretrained_epoch is None:
+        #            saveEmbed_dir = f'{data_dir}/embedding_{split}_{pretrain_model}'
+        #        else:
+        #            saveEmbed_dir = f'{data_dir}/embedding_{split}_{pretrain_model}_{pretrained_epoch}'
+        #    with open(f'{saveEmbed_dir}.pickle', 'wb') as jfl:
+        #      pkl.dump(value,jfl,protocol=pkl.HIGHEST_PROTOCOL)
+        
         elif name == 'save_embedding':
-            pretrain_model = re.split('/',from_pretrained)[-1]
-            embedding_save_model_path = f'{eval_path}/embedding_analysis/embedding_save/{model_name}/{set_name}_{pretrained_epoch}'
-            if not os.path.isdir(embedding_save_model_path):
-                os.makedirs(embedding_save_model_path,exist_ok=True)
-            
-            if embed_modelNm is not None:
-                saveEmbed_dir = f'{data_dir}/embedding_{split}_{embed_modelNm}'
-            else:
-                if pretrained_epoch is None:
-                    saveEmbed_dir = f'{data_dir}/embedding_{split}_{pretrain_model}'
-                else:
-                    saveEmbed_dir = f'{data_dir}/embedding_{split}_{pretrain_model}_{pretrained_epoch}'
-            with open(f'{saveEmbed_dir}.pickle', 'wb') as jfl:
-              pkl.dump(value,jfl,protocol=pkl.HIGHEST_PROTOCOL)
+            pass
+        
+        elif name == 'save_logits':
+            pass
+        
         elif name == 'embed_antibody_internal':
             pretrain_set = re.split('/',from_pretrained)[-3]
             antibody_straty_set = re.split('/',from_pretrained)[-2]
