@@ -173,7 +173,7 @@ optional arguments:
   --fasta_dir FASTA_DIR
                         Directory containing ProteinGym substitution CSVs.
   --data_dir DATA_DIR   Directory used by the embedding script for LMDB/JSON (should be visible under
-                        ProteinEncoder-LM/).
+                        ProteinEncoder-LM/); typically the same as the above.
   --model_dir MODEL_DIR
                         Path to the saved model folder.
   --embed_name EMBED_NAME
