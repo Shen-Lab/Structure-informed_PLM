@@ -102,10 +102,8 @@ optional arguments:
                         ProteinEncoder-LM/); typically the same as the above.
   --model_dir MODEL_DIR
                         Path to the saved model folder.
-  --embed_name EMBED_NAME
-                        Identifier for --embed_modelNm (appears in output JSON filename).
   --batch_size BATCH_SIZE
-                        Batch size for embedding.
+                        Batch size.
   --overwrite           Overwrite existing .h5 files if present.
 ``` 
 
@@ -176,10 +174,8 @@ optional arguments:
                         ProteinEncoder-LM/); typically the same as the above.
   --model_dir MODEL_DIR
                         Path to the saved model folder.
-  --embed_name EMBED_NAME
-                        Identifier for --embed_modelNm (appears in output JSON filename).
   --batch_size BATCH_SIZE
-                        Batch size for embedding.
+                        Batch size.
   --overwrite           Overwrite existing .h5 files if present.
 ```
 
