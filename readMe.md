@@ -166,7 +166,7 @@ python gen_logits.py --help
 usage: gen_logits.py [-h] [--fasta_dir FASTA_DIR] [--data_dir DATA_DIR] [--model_dir MODEL_DIR]
                      [--embed_name EMBED_NAME] [--batch_size BATCH_SIZE] [--overwrite]
 
-Generate per-CSV HDF5 embedding files from ProteinGym substitution CSVs.
+Generate per-fasta HDF5 logits files from input fastas.
 
 optional arguments:
   -h, --help            show this help message and exit
