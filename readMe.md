@@ -99,7 +99,7 @@ optional arguments:
   -h, --help            show this help message and exit
   --csv_dir CSV_DIR     Directory containing ProteinGym substitution CSVs.
   --data_dir DATA_DIR   Directory used by the embedding script for LMDB/JSON (should be visible under
-                        ProteinEncoder-LM/).
+                        ProteinEncoder-LM/); typically the same as the above.
   --model_dir MODEL_DIR
                         Path to the saved model folder.
   --embed_name EMBED_NAME
