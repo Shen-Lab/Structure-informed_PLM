@@ -154,3 +154,17 @@ With the acquired MSA, generate training data of sequences and structures with t
 ```python
 python
 ```
+
+## How to cite our paper:  
+```
+@article{sun2025structure,
+  title={Structure-informed protein language models are robust predictors for variant effects},
+  author={Sun, Yuanfei and Shen, Yang},
+  journal={Human Genetics},
+  volume={144},
+  number={2},
+  pages={209--225},
+  year={2025},
+  publisher={Springer}
+}
+```
